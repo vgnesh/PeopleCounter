@@ -1,33 +1,31 @@
 # Project Write-Up
 
-You can use this document as a template for providing your project write-up. However, if you
-have a different format you prefer, feel free to use it as long as you answer all required
-questions.
+In this project I have used the faster-rcnn-inception-v2 from tensorflow model zoo [link to download the model](http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_v2_coco_2018_01_28.tar.gz) of object detection to detect people from anyone of input modes (recoded video, live cam stream or image). OpenVINO toolkit from intel was used to make the model small so that it can be used in edge AI applications.
 
-## Explaining Custom Layers
+Following command was used to convert the original model to IR:
 
-The process behind converting custom layers involves...
+python /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json --tensorflow_object_detection_api faster_rcnn_inception_v2_coco_2018_01_28/pipeline.config --reverse_input_channels
 
-Some of the potential reasons for handling custom layers are...
+By default the input was reshaped to 600x600 as mentioned in pipeline.config file of the model under keep_aspect_ratio_resizer min-size  dimension. 
+
+Following command was used to run the application:
+
+python main.py -i resources/Pedestrian_Detect_2_1_1.mp4 -m faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.xml -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so -d CPU -pt 0.2 | ffmpeg -v warning -f rawvideo -pixel_format bgr24 -video_size 768x432 -framerate 24 -i - http://localhost:3004/fac.ffm
 
 ## Comparing Model Performance
 
-My method(s) to compare models before and after conversion to Intermediate Representations
-were...
+Below is the result of model performance on inference before and after converting it with OpenVINO toolkit (Latency might change based on the processor on which the model is run):
 
-The difference between model accuracy pre- and post-conversion was...
+| Model      | Latency in microseconds     | Memory in mb     |
+| :------------- | :----------: | -----------: |
+|  faster_rcnn_inception_v2 (OpenVINO) | 260   | 53.2    |
+| faster_rcnn_inception_v2 (Tensorflow)   | 690 | 57.2 |
 
-The size of the model pre- and post-conversion was...
+## Model Use Cases
 
-The inference time of the model pre- and post-conversion was...
+This application could be used to keep track of a person's duration in a time restricted place and raise an alarm when a person spends more time than the restricted time limit.
 
-## Assess Model Use Cases
+## Effects on End User Needs
 
-Some of the potential use cases of the people counter app are...
-
-Each of these use cases would be useful because...
-
-## Assess Effects on End User Needs
-
-Lighting, model accuracy, and camera focal length/image size have different effects on a
-deployed edge model. The potential effects of each of these are as follows...
+- If Lighting condition changes frequently then model gives a false positive or even sometimes does not detect due to fewer data. 
+- Bad camera angle could lead to occlusion problem where two or more person are counted as one, so it will give false result in counting.
