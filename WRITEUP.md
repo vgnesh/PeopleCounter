@@ -1,5 +1,7 @@
 # Project Write-Up
 
+## Explaining Custom Layers
+
 In this project I have used the faster-rcnn-inception-v2 from tensorflow model zoo [link to download the model](http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_v2_coco_2018_01_28.tar.gz) of object detection to detect people from anyone of input modes (recoded video, live cam stream or image). OpenVINO toolkit from intel was used to make the model small so that it can be used in edge AI applications.
 
 Following command was used to convert the original model to IR:
@@ -23,9 +25,20 @@ Below is the result of model performance on inference before and after convertin
 
 ## Model Use Cases
 
-This application could be used to keep track of a person's duration in a time restricted place and raise an alarm when a person spends more time than the restricted time limit.
+Imagine that you were a retailer with a sales goal for a specific product. You could analyze the effectiveness of your promotion by tracking post-interaction customer behavior. If a customer sees a message about the promotion of a specific product upon arrival, does that customer proceed to the merchandise immediately or later in their shopping experience? Customer tracking along with the count across an array of store cameras can help you understand the effectiveness of the promotion for that product.
 
 ## Effects on End User Needs
 
 - If Lighting condition changes frequently then model gives a false positive or even sometimes does not detect due to fewer data. 
 - Bad camera angle could lead to occlusion problem where two or more person are counted as one, so it will give false result in counting.
+
+## Model Research
+
+### Original model
+
+Image, name: image_tensor, shape: (1x600x1024x3), format: (BxHxWxC), color order: RGB
+
+### Converted model
+
+- Image, name: image_tensor, shape: (1x3x600x1024), format: (BxCxHxW), color order: BGR
+- Information of input image size, name: image_info, shape: (1x3), format: (BxC) where C is a vector of 3 values in format (H,W,S), where H - image height, W - imahe width, S - image scale factor (usually 1)
